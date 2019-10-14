@@ -28,7 +28,7 @@ type WatcherTestSuite struct {
 	cfg        *embed.Config
 	etcdServer *embed.Etcd
 
-	watcher *watcher
+	watcher *Watcher
 	suite.Suite
 }
 
@@ -52,7 +52,7 @@ func TestWatcherTestSuite(t *testing.T) {
 }
 
 func (s *WatcherTestSuite) SetupSuite() {
-	tempDir, err := ioutil.TempDir(os.TempDir(), "ethereal-watcher-test")
+	tempDir, err := ioutil.TempDir(os.TempDir(), "ethereal-Watcher-test")
 	require.NoError(s.T(), err)
 
 	cfg := embed.NewConfig()
@@ -72,7 +72,7 @@ func (s *WatcherTestSuite) TearDownSuite() {
 }
 
 func (s *WatcherTestSuite) TestWatcher() {
-	s.T().Run("watcher should receive put events", func(t *testing.T) {
+	s.T().Run("Watcher should receive put events", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 		defer cancelFunc()
 
@@ -92,7 +92,7 @@ func (s *WatcherTestSuite) TestWatcher() {
 		assert.Equal(t, expectedEvent, <-chanEvent)
 	})
 
-	s.T().Run("watcher should not receive del events", func(t *testing.T) {
+	s.T().Run("Watcher should not receive del events", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 		defer cancelFunc()
 
@@ -112,7 +112,7 @@ func (s *WatcherTestSuite) TestWatcher() {
 		assert.True(t, isCalled)
 	})
 
-	s.T().Run("context should cancel watcher", func(t *testing.T) {
+	s.T().Run("context should cancel Watcher", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 
 		isCalled := false
@@ -129,6 +129,6 @@ func (s *WatcherTestSuite) TestWatcher() {
 		_, err = s.watcher.Client.Put(context.Background(), "/org/domain/common", `{"boolean_flag": true}`)
 		require.NoError(t, err, "error should not occur while performing put")
 		time.Sleep(time.Millisecond)
-		assert.True(t, isCalled, "should not receive further watcher updates")
+		assert.True(t, isCalled, "should not receive further Watcher updates")
 	})
 }

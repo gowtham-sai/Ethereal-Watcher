@@ -7,13 +7,13 @@ import (
 	etcd "github.com/coreos/etcd/clientv3"
 )
 
-type watcher struct {
+type Watcher struct {
 	*etcd.Client
 }
 
 type UpdateFunc func(string, string)
 
-func (w *watcher) WatchNS(ctx context.Context, ns string, f UpdateFunc) {
+func (w *Watcher) WatchNS(ctx context.Context, ns string, f UpdateFunc) {
 	etcdWatcher := etcd.NewWatcher(w.Client)
 	watcherChan := etcdWatcher.Watch(ctx, ns, etcd.WithPrefix(), etcd.WithFilterDelete())
 
@@ -38,10 +38,10 @@ watcherLoop:
 	}
 }
 
-func NewWatcher(config etcd.Config) (*watcher, error) {
+func NewWatcher(config etcd.Config) (*Watcher, error) {
 	client, err := etcd.New(config)
 	if err != nil {
 		return nil, err
 	}
-	return &watcher{client}, nil
+	return &Watcher{client}, nil
 }
