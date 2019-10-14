@@ -1,0 +1,7 @@
+vendor/
+application.yml
+coverage.out
+tags
+out/
+.idea/
+.vscode/
