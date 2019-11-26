@@ -1,4 +1,4 @@
-package watcher
+package etherealwatcher
 
 import (
 	"context"
@@ -28,7 +28,7 @@ type WatcherTestSuite struct {
 	cfg        *embed.Config
 	etcdServer *embed.Etcd
 
-	watcher *Watcher
+	w *EtherealWatcher
 	suite.Suite
 }
 
@@ -39,7 +39,7 @@ func (s *WatcherTestSuite) SetupTest() {
 	s.etcdServer = etcdServer
 	s.wg = &sync.WaitGroup{}
 
-	s.watcher, err = NewWatcher(etcd.Config{Endpoints: []string{DefaultListenClientURL}})
+	s.w, err = NewWatcher(etcd.Config{Endpoints: []string{DefaultListenClientURL}})
 	require.NoError(s.T(), err)
 }
 
@@ -52,7 +52,7 @@ func TestWatcherTestSuite(t *testing.T) {
 }
 
 func (s *WatcherTestSuite) SetupSuite() {
-	tempDir, err := ioutil.TempDir(os.TempDir(), "ethereal-Watcher-test")
+	tempDir, err := ioutil.TempDir(os.TempDir(), "ethereal-EtherealWatcher-test")
 	require.NoError(s.T(), err)
 
 	cfg := embed.NewConfig()
@@ -72,7 +72,7 @@ func (s *WatcherTestSuite) TearDownSuite() {
 }
 
 func (s *WatcherTestSuite) TestWatcher() {
-	s.T().Run("Watcher should receive put events", func(t *testing.T) {
+	s.T().Run("EtherealWatcher should receive put events", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 		defer cancelFunc()
 
@@ -82,53 +82,53 @@ func (s *WatcherTestSuite) TestWatcher() {
 		expectedEvent := Event{"/org/domain/common", `{"boolean_flag": true}`}
 		chanEvent := make(chan Event)
 
-		go s.watcher.WatchNS(ctx, "/org/domain", func(key string, value string) {
+		go s.w.WatchNS(ctx, "/org/domain", func(key string, value string) {
 			chanEvent <- Event{key, value}
 		})
 
-		_, err := s.watcher.Client.Put(ctx, expectedEvent.key, expectedEvent.value)
+		_, err := s.w.Client.Put(ctx, expectedEvent.key, expectedEvent.value)
 		require.NoError(t, err, "error should not occur while performing put")
 
 		assert.Equal(t, expectedEvent, <-chanEvent)
 	})
 
-	s.T().Run("Watcher should not receive del events", func(t *testing.T) {
+	s.T().Run("EtherealWatcher should not receive del events", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 		defer cancelFunc()
 
 		isCalled := false
-		go s.watcher.WatchNS(ctx, "/org/domain", func(key string, value string) {
+		go s.w.WatchNS(ctx, "/org/domain", func(key string, value string) {
 			isCalled = !isCalled
 		})
 
-		_, err := s.watcher.Client.Put(ctx, "/org/domain/common", `{"boolean_flag": true}`)
+		_, err := s.w.Client.Put(ctx, "/org/domain/common", `{"boolean_flag": true}`)
 		require.NoError(t, err, "error should not occur while performing put")
 		time.Sleep(time.Millisecond)
 		assert.True(t, isCalled)
 
-		_, err = s.watcher.Client.Delete(ctx, "/org/domain/common")
+		_, err = s.w.Client.Delete(ctx, "/org/domain/common")
 		require.NoError(t, err, "error should not occur while performing put")
 		time.Sleep(time.Millisecond)
 		assert.True(t, isCalled)
 	})
 
-	s.T().Run("context should cancel Watcher", func(t *testing.T) {
+	s.T().Run("context should cancel EtherealWatcher", func(t *testing.T) {
 		ctx, cancelFunc := context.WithCancel(context.Background())
 
 		isCalled := false
-		go s.watcher.WatchNS(ctx, "/org/domain", func(key string, value string) {
+		go s.w.WatchNS(ctx, "/org/domain", func(key string, value string) {
 			isCalled = !isCalled
 		})
 
-		_, err := s.watcher.Client.Put(ctx, "/org/domain/common", `{"boolean_flag": true}`)
+		_, err := s.w.Client.Put(ctx, "/org/domain/common", `{"boolean_flag": true}`)
 		require.NoError(t, err, "error should not occur while performing put")
 		time.Sleep(time.Millisecond)
 		require.True(t, isCalled)
 
 		cancelFunc()
-		_, err = s.watcher.Client.Put(context.Background(), "/org/domain/common", `{"boolean_flag": true}`)
+		_, err = s.w.Client.Put(context.Background(), "/org/domain/common", `{"boolean_flag": true}`)
 		require.NoError(t, err, "error should not occur while performing put")
 		time.Sleep(time.Millisecond)
-		assert.True(t, isCalled, "should not receive further Watcher updates")
+		assert.True(t, isCalled, "should not receive further EtherealWatcher updates")
 	})
 }

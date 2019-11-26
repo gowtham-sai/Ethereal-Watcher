@@ -1,4 +1,4 @@
-package watcher
+package etherealwatcher
 
 import (
 	"context"
@@ -7,13 +7,13 @@ import (
 	etcd "github.com/coreos/etcd/clientv3"
 )
 
-type Watcher struct {
+type EtherealWatcher struct {
 	*etcd.Client
 }
 
 type UpdateFunc func(string, string)
 
-func (w *Watcher) WatchNS(ctx context.Context, ns string, f UpdateFunc) {
+func (w *EtherealWatcher) WatchNS(ctx context.Context, ns string, f UpdateFunc) {
 	etcdWatcher := etcd.NewWatcher(w.Client)
 	watcherChan := etcdWatcher.Watch(ctx, ns, etcd.WithPrefix(), etcd.WithFilterDelete())
 
@@ -23,7 +23,7 @@ watcherLoop:
 		case watcherResponse, ok := <-watcherChan:
 			// channel closed, probably client asked us to stop.
 			if !ok {
-				fmt.Printf("Watcher closed for ns: %s\n", ns)
+				fmt.Printf("EtherealWatcher closed for ns: %s\n", ns)
 				break watcherLoop
 			}
 
@@ -38,10 +38,10 @@ watcherLoop:
 	}
 }
 
-func NewWatcher(config etcd.Config) (*Watcher, error) {
+func NewWatcher(config etcd.Config) (*EtherealWatcher, error) {
 	client, err := etcd.New(config)
 	if err != nil {
 		return nil, err
 	}
-	return &Watcher{client}, nil
+	return &EtherealWatcher{client}, nil
 }
